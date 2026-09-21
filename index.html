@@ -3,147 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flores Amarillas</title>
+    <title>Ramo Especial para Iara y Nicki</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #0b0c10;
+            background-color: #1a1c29;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .container {
-            text-align: center;
-            position: relative;
+            font-family: 'Georgia', serif;
         }
 
         h1 {
-            color: #f4d03f;
+            color: #ffffff;
             font-size: 2.2rem;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(244, 208, 63, 0.5);
-            animation: fadeIn 2s ease-in-out;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
         canvas {
             background-color: transparent;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            border-radius: 15px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>✨ Para ustedes ✨</h1>
-        <canvas id="flowerCanvas" width="600" height="600"></canvas>
-    </div>
+    <h1>Ramo Especial para Iara y Nicki</h1>
+    <canvas id="flowerCanvas" width="700" height="650"></canvas>
 
     <script>
         const canvas = document.getElementById('flowerCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Dibujar Tallo
-        function drawStem(startX, startY, endX, endY) {
+        let angleOffset = 0;
+
+        // Dibuja flor tipo estrella/girasol amarilla
+        function drawYellowFlower(x, y, scale = 1, rotation = 0) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            ctx.scale(scale, scale);
+
+            const points = 16;
+            const outerRadius = 45;
+            const innerRadius = 25;
+
             ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.quadraticCurveTo((startX + endX)/2 + 20, (startY + endY)/2, endX, endY);
-            ctx.strokeStyle = '#2d5a27';
-            ctx.lineWidth = 8;
-            ctx.lineCap = 'round';
-            ctx.stroke();
+            for (let i = 0; i < points * 2; i++) {
+                const r = (i % 2 === 0) ? outerRadius : innerRadius;
+                const a = (i * Math.PI) / points;
+                const px = Math.cos(a) * r;
+                const py = Math.sin(a) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#ffea55';
+            ctx.fill();
+
+            // Centro
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff59d';
+            ctx.fill();
+
+            ctx.restore();
         }
 
-        // Dibujar Hojas
-        function drawLeaf(x, y, angle, size) {
+        // Dibuja flor pequeña blanca/amarilla
+        function drawWhiteFlower(x, y, scale = 1) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            const petals = 12;
+            for (let i = 0; i < petals; i++) {
+                const a = (i * 2 * Math.PI) / petals;
+                ctx.beginPath();
+                ctx.ellipse(Math.cos(a) * 15, Math.sin(a) * 15, 8, 4, a, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffeb3b';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Dibuja flor violeta/rosa
+        function drawPinkFlower(x, y, scale = 1, angle = 0) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle);
+            ctx.scale(scale, scale);
+
+            ctx.fillStyle = '#e1bee7';
+            for (let i = -1; i <= 1; i++) {
+                ctx.beginPath();
+                ctx.ellipse(i * 10, -10, 8, 16, i * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // Dibuja espigas onduladas tipo lavanda
+        function drawLavender(startX, startY, endX, endY, wavePhase) {
+            ctx.save();
             ctx.beginPath();
-            ctx.ellipse(0, 0, size, size / 2, 0, 0, Math.PI * 2);
-            ctx.fillStyle = '#3a7d34';
-            ctx.fill();
-            ctx.strokeStyle = '#1e461a';
-            ctx.lineWidth = 2;
+            ctx.moveTo(startX, startY);
+            
+            const steps = 30;
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const x = startX + (endX - startX) * t;
+                const y = startY + (endY - startY) * t;
+                const wave = Math.sin(t * 12 + wavePhase) * 8 * t;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x + wave, y);
+            }
+            ctx.strokeStyle = '#ce93d8';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
             ctx.stroke();
             ctx.restore();
         }
 
-        // Dibujar Flor Amarilla
-        function drawFlower(centerX, centerY, petals, petalRadius, centerRadius) {
-            // Pétalos
-            for (let i = 0; i < petals; i++) {
-                const angle = (i * 2 * Math.PI) / petals;
-                const x = centerX + Math.cos(angle) * (petalRadius * 0.7);
-                const y = centerY + Math.sin(angle) * (petalRadius * 0.7);
-
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(angle);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, petalRadius, petalRadius / 2.2, 0, 0, Math.PI * 2);
-                
-                // Degradado amarillo brillante
-                let grad = ctx.createRadialGradient(0, 0, 2, 0, 0, petalRadius);
-                grad.addColorStop(0, '#fff176');
-                grad.addColorStop(0.7, '#fbc02d');
-                grad.addColorStop(1, '#f57f17');
-                
-                ctx.fillStyle = grad;
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // Centro de la flor
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, centerRadius, 0, Math.PI * 2);
-            let centerGrad = ctx.createRadialGradient(centerX, centerY, 2, centerX, centerY, centerRadius);
-            centerGrad.addColorStop(0, '#a1887f');
-            centerGrad.addColorStop(0.8, '#5d4037');
-            centerGrad.addColorStop(1, '#3e2723');
-            ctx.fillStyle = centerGrad;
-            ctx.fill();
-            ctx.strokeStyle = '#270f08';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        // Ramo Completo
-        function drawBouquet() {
+        // Render principal animado
+        function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Tallos
-            drawStem(300, 580, 200, 300);
-            drawStem(300, 580, 400, 320);
-            drawStem(300, 580, 300, 240);
-            drawStem(300, 580, 150, 220);
-            drawStem(300, 580, 450, 230);
+            const tieX = 350;
+            const tieY = 490;
 
-            // Hojas
-            drawLeaf(260, 480, -0.5, 35);
-            drawLeaf(340, 490, 0.5, 35);
-            drawLeaf(220, 380, -0.8, 40);
-            drawLeaf(380, 390, 0.8, 40);
+            // Tallos inferiores que se cruzan
+            ctx.strokeStyle = '#388e3c';
+            ctx.lineWidth = 3;
 
-            // Flores
-            drawFlower(150, 220, 14, 38, 16);
-            drawFlower(450, 230, 14, 38, 16);
-            drawFlower(200, 300, 15, 42, 18);
-            drawFlower(400, 320, 15, 42, 18);
-            drawFlower(300, 240, 16, 48, 20); // Flor central principal
+            ctx.beginPath();
+            ctx.moveTo(tieX, tieY);
+            ctx.lineTo( tieX - 50, tieY + 80);
+            ctx.moveTo(tieX, tieY);
+            ctx.lineTo( tieX + 50, tieY + 80);
+            ctx.stroke();
+
+            // Lista de destinos de los tallos principales
+            const targets = [
+                { x: 180, y: 150 },
+                { x: 230, y: 120 },
+                { x: 280, y: 220 },
+                { x: 350, y: 130 },
+                { x: 350, y: 250 },
+                { x: 420, y: 220 },
+                { x: 470, y: 120 },
+                { x: 520, y: 150 },
+                { x: 200, y: 320 },
+                { x: 500, y: 320 }
+            ];
+
+            // Dibujar tallos rectos principales
+            targets.forEach(t => {
+                ctx.beginPath();
+                ctx.moveTo(tieX, tieY);
+                ctx.lineTo(t.x, t.y);
+                ctx.strokeStyle = '#2e7d32';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            });
+
+            // Espigas laterales de lavanda animadas
+            drawLavender(tieX, tieY, 150, 180, angleOffset);
+            drawLavender(tieX, tieY, 550, 180, -angleOffset);
+
+            // Flores de adorno (blancas y violetas)
+            drawPinkFlower(230, 220, 0.9, -0.4);
+            drawPinkFlower(470, 220, 0.9, 0.4);
+            drawPinkFlower(310, 160, 0.8, -0.2);
+            drawPinkFlower(390, 160, 0.8, 0.2);
+
+            drawWhiteFlower(350, 130, 0.9);
+            drawWhiteFlower(200, 320, 0.85);
+            drawWhiteFlower(500, 320, 0.85);
+
+            // Flores Amarillas Principales (animadas suavemente)
+            const float1 = Math.sin(angleOffset) * 4;
+            const float2 = Math.cos(angleOffset) * 4;
+
+            drawYellowFlower(280, 220 + float1, 1.1, angleOffset * 0.2);
+            drawYellowFlower(420, 220 + float2, 1.1, -angleOffset * 0.2);
+            drawYellowFlower(350, 260 - float1, 1.25, angleOffset * 0.1);
+
+            // Lazo / Moño del ramo
+            ctx.beginPath();
+            ctx.arc(tieX, tieY, 16, 0, Math.PI * 2);
+            ctx.fillStyle = '#c8e6c9';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(tieX - 10, tieY + 10);
+            ctx.lineTo(tieX - 25, tieY + 45);
+            ctx.moveTo(tieX + 10, tieY + 10);
+            ctx.lineTo(tieX + 25, tieY + 45);
+            ctx.strokeStyle = '#c8e6c9';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            angleOffset += 0.03;
+            requestAnimationFrame(animate);
         }
 
-        drawBouquet();
+        animate();
     </script>
 </body>
 </html>
