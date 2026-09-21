@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramo Especial para Iara y Nicki</title>
+    <title>Ramo Especial para Lara y Nicki</title>
     <style>
         body {
             margin: 0;
@@ -40,7 +40,6 @@
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
-        // Objeto para manejar la animación del dibujo inicial
         let isFinishedDrawing = false;
 
         async function drawLineAnimated(x1, y1, x2, y2, color, width, speed = 15) {
@@ -77,12 +76,86 @@
             await delay(15);
         }
 
-        // --- SISTEMA DE DIBUJO BASE Y DIBUJO CON VIENTO ---
+        // --- DIBUJO DEDICADO DE GIRASOL REALISTA ---
+        function drawSunflowerPetal(cx, cy, length, width, angle, color) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(width / 2, length / 2, 0, length);
+            ctx.quadraticCurveTo(-width / 2, length / 2, 0, 0);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        async function drawSunflowerAnimated(x, y, size) {
+            const [cx, cy] = toCanvas(x, y);
+            const petalCount = 16;
+            const petalLength = size * 0.7;
+            const petalWidth = size * 0.28;
+
+            // Capa trasera de pétalos (amarillo oscuro)
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (i * (360 / petalCount) + 11.25) * Math.PI / 180;
+                drawSunflowerPetal(cx, cy, petalLength, petalWidth, angle, '#fbc02d');
+                await delay(15);
+            }
+
+            // Capa delantera de pétalos (amarillo brillante)
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (i * (360 / petalCount)) * Math.PI / 180;
+                drawSunflowerPetal(cx, cy, petalLength, petalWidth, angle, '#ffeb3b');
+                await delay(15);
+            }
+
+            // Centro oscuro característico del girasol
+            ctx.fillStyle = '#4e270a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, size * 0.38, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Textura del centro (semillas)
+            ctx.fillStyle = '#2e1402';
+            ctx.beginPath();
+            ctx.arc(cx, cy, size * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+            await delay(20);
+        }
+
+        function drawSunflowerStatic(x, y, size) {
+            const [cx, cy] = toCanvas(x, y);
+            const petalCount = 16;
+            const petalLength = size * 0.7;
+            const petalWidth = size * 0.28;
+
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (i * (360 / petalCount) + 11.25) * Math.PI / 180;
+                drawSunflowerPetal(cx, cy, petalLength, petalWidth, angle, '#fbc02d');
+            }
+
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (i * (360 / petalCount)) * Math.PI / 180;
+                drawSunflowerPetal(cx, cy, petalLength, petalWidth, angle, '#ffeb3b');
+            }
+
+            ctx.fillStyle = '#4e270a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, size * 0.38, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#2e1402';
+            ctx.beginPath();
+            ctx.arc(cx, cy, size * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // --- RENDERIZADO COMPLETO DEL RAMO ---
         function renderBouquet(windOffset = 0) {
             ctx.fillStyle = '#1a1c29';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Título
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 22px Georgia';
             ctx.textAlign = 'center';
@@ -107,9 +180,8 @@
                 ctx.fill();
             }
 
-            // Aplicar viento según la altura Y del elemento
             function applyWind(x, y) {
-                const factor = Math.max(0, (y + 200) / 400); // Más viento más arriba
+                const factor = Math.max(0, (y + 200) / 400);
                 return [x + windOffset * factor, y];
             }
 
@@ -142,7 +214,7 @@
                 }
             }
 
-            // Rosadas
+            // Flores Rosadas
             function drawPinkFlowerStatic(x, y) {
                 const pos = applyWind(x, y);
                 for (let angle of [0, 120, 240]) {
@@ -158,7 +230,7 @@
             drawPinkFlowerStatic(-100, 40);
             drawPinkFlowerStatic(100, 40);
 
-            // Blancas
+            // Flores Blancas
             function drawWhiteFlowerStatic(x, y) {
                 const pos = applyWind(x, y);
                 for (let i = 0; i < 8; i++) {
@@ -174,32 +246,22 @@
             drawWhiteFlowerStatic(-220, 100);
             drawWhiteFlowerStatic(220, 100);
 
-            // Amarillas
-            function drawYellowFlowerStatic(x, y, radius) {
-                const pos = applyWind(x, y);
-                const petals = 20;
-                drawDotStatic(pos[0], pos[1], radius, '#ffee58');
+            // Girasoles
+            const sun1 = applyWind(-100, 70);
+            drawSunflowerStatic(sun1[0], sun1[1], 45);
 
-                for (let i = 0; i < petals; i++) {
-                    const rad = (i * (360 / petals)) * Math.PI / 180;
-                    const px1 = pos[0] + Math.cos(rad) * radius;
-                    const py1 = pos[1] + Math.sin(rad) * radius;
-                    const px2 = pos[0] + Math.cos(rad) * (radius + 6);
-                    const py2 = pos[1] + Math.sin(rad) * (radius + 6);
-                    drawLineStatic(px1, py1, px2, py2, '#fff59d', 2);
-                }
-                drawDotStatic(pos[0], pos[1], radius * 0.4, '#fff176');
-            }
-            drawYellowFlowerStatic(-100, 70, 45);
-            drawYellowFlowerStatic(100, 70, 45);
-            drawYellowFlowerStatic(0, 30, 50);
+            const sun2 = applyWind(100, 70);
+            drawSunflowerStatic(sun2[0], sun2[1], 45);
+
+            const sun3 = applyWind(0, 30);
+            drawSunflowerStatic(sun3[0], sun3[1], 55);
 
             // Moño
             const bow = applyWind(0, -200);
             drawDotStatic(bow[0], bow[1], 15, '#a5d6a7');
         }
 
-        // --- MARIPOSAS ---
+        // Mariposas
         const butterflies = [
             { x: -150, y: 100, color: '#e040fb', angle: 0, speed: 0.03, size: 12 },
             { x: 150, y: 50, color: '#00e5ff', angle: 2, speed: 0.025, size: 10 },
@@ -207,31 +269,25 @@
         ];
 
         function drawButterfly(b, time) {
-            // Movimiento orbital en espiral suave alrededor del ramo
             b.angle += b.speed;
             const currentX = b.x + Math.sin(b.angle) * 35;
             const currentY = b.y + Math.cos(b.angle * 0.7) * 20;
 
             const [cx, cy] = toCanvas(currentX, currentY);
-
-            // Aleteo de alas
             const wingFlap = Math.abs(Math.sin(time * 0.01));
 
             ctx.fillStyle = b.color;
             ctx.save();
             ctx.translate(cx, cy);
 
-            // Ala izquierda
             ctx.beginPath();
             ctx.ellipse(-b.size * 0.6 * wingFlap, -b.size * 0.3, b.size * wingFlap, b.size * 0.6, 0.3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Ala derecha
             ctx.beginPath();
             ctx.ellipse(b.size * 0.6 * wingFlap, -b.size * 0.3, b.size * wingFlap, b.size * 0.6, -0.3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Cuerpo
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
@@ -240,7 +296,7 @@
             ctx.restore();
         }
 
-        // --- SECUENCIA INICIAL DE TRAZO ---
+        // --- SECUENCIA DE INICIO ---
         async function startDrawingSequence() {
             ctx.fillStyle = '#1a1c29';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -303,43 +359,25 @@
             await drawWhiteFlower(-220, 100);
             await drawWhiteFlower(220, 100);
 
-            // Amarillas
-            async function drawYellowFlower(x, y, radius) {
-                const petals = 20;
-                await drawDot(x, y, radius, '#ffee58');
-
-                for (let i = 0; i < petals; i++) {
-                    const rad = (i * (360 / petals)) * Math.PI / 180;
-                    const px1 = x + Math.cos(rad) * radius;
-                    const py1 = y + Math.sin(rad) * radius;
-                    const px2 = x + Math.cos(rad) * (radius + 6);
-                    const py2 = y + Math.sin(rad) * (radius + 6);
-                    await drawLineAnimated(px1, py1, px2, py2, '#fff59d', 2, 4);
-                }
-                await drawDot(x, y, radius * 0.4, '#fff176');
-            }
-            await drawYellowFlower(-100, 70, 45);
-            await drawYellowFlower(100, 70, 45);
-            await drawYellowFlower(0, 30, 50);
+            // Girasoles animados
+            await drawSunflowerAnimated(-100, 70, 45);
+            await drawSunflowerAnimated(100, 70, 45);
+            await drawSunflowerAnimated(0, 30, 55);
 
             // Moño
             await drawDot(0, -200, 15, '#a5d6a7');
 
-            // Habilitar animación continua cuando termine de trazarse
             isFinishedDrawing = true;
             requestAnimationFrame(animateLoop);
         }
 
-        // --- BUCLE CONTINUO (VIENTO Y MARIPOSAS) ---
         function animateLoop(time) {
             if (!isFinishedDrawing) return;
 
-            // Balanceo constante como si soplara viento suave
             const windOffset = Math.sin(time * 0.002) * 12;
 
             renderBouquet(windOffset);
 
-            // Dibujar las mariposas
             for (let b of butterflies) {
                 drawButterfly(b, time);
             }
