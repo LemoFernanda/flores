@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramo Especial para Lara y Nicki</title>
+    <title>Ramo Especial para Iara y Nicki</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <style>
         body {
@@ -47,127 +47,143 @@
         async function main() {
             let pyodide = await loadPyodide();
             
-            // Ocultamos el mensaje de carga cuando Pyodide está listo
+            // Ocultar mensaje de carga
             document.getElementById("loading").style.display = "none";
 
-            // Código de Python exacto con animación de Turtle
             const pythonCode = `
-import turtle
+import js
 import math
 
-screen = turtle.Screen()
-screen.setup(width=800, height=700)
-screen.bgcolor('#1a1c29')
-screen.title("Ramo Especial para Iara y Nicki")
+# Redefinicion ligera para renderizar en HTML5 Canvas directamente
+canvas = js.document.createElement('canvas')
+canvas.width = 800
+canvas.height = 700
+js.document.getElementById('canvas-container').appendChild(canvas)
+ctx = canvas.getContext('2d')
 
-t = turtle.Turtle()
-t.speed(0)
-t.hideturtle()
+# Fondo
+ctx.fillStyle = '#1a1c29'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 # Titulo
-t.penup()
-t.goto(0, 260)
-t.color('white')
-t.write("Ramo Especial para Iara y Nicki", align="center", font=("Georgia", 22, "bold"))
+ctx.fillStyle = '#ffffff'
+ctx.font = 'bold 22px Georgia'
+ctx.textAlign = 'center'
+ctx.fillText('Ramo Especial para Iara y Nicki', 400, 50)
 
-# Tallo central base
-def draw_stems():
-    t.pensize(3)
-    t.color('#388e3c')
-    
-    # Lazos e interseccion inferior
-    t.penup()
-    t.goto(0, -200)
-    t.pendown()
-    t.goto(-40, -280)
-    t.penup()
-    t.goto(0, -200)
-    t.pendown()
-    t.goto(40, -280)
+# Funcion para transformar coordenadas de Turtle a Canvas
+def to_canvas(x, y):
+    return 400 + x, 350 - y
 
-    # Tallos que se abren en abanico
-    targets = [
-        (-220, 100), (-160, 160), (-100, 40), (-50, 180),
-        (0, 60), (50, 180), (100, 40), (160, 160), (220, 100)
-    ]
-    
-    for tx, ty in targets:
-        t.penup()
-        t.goto(0, -200)
-        t.pendown()
-        t.goto(tx, ty)
+# Tallos
+targets = [
+    (-220, 100), (-160, 160), (-100, 40), (-50, 180),
+    (0, 60), (50, 180), (100, 40), (160, 160), (220, 100)
+]
+
+ctx.strokeStyle = '#388e3c'
+ctx.lineWidth = 3
+
+# Lazos base
+x0, y0 = to_canvas(0, -200)
+x1, y1 = to_canvas(-40, -280)
+x2, y2 = to_canvas(40, -280)
+
+ctx.beginPath()
+ctx.moveTo(x0, y0); ctx.lineTo(x1, y1)
+ctx.moveTo(x0, y0); ctx.lineTo(x2, y2)
+ctx.stroke()
+
+for tx, ty in targets:
+    cx, cy = to_canvas(tx, ty)
+    ctx.beginPath()
+    ctx.moveTo(x0, y0)
+    ctx.lineTo(cx, cy)
+    ctx.stroke()
 
 # Espigas tipo lavanda
 def draw_lavender(x_start, y_start, direction):
-    t.pensize(4)
-    t.color('#ce93d8')
-    t.penup()
-    t.goto(x_start, y_start)
-    t.pendown()
-    
     curr_x, curr_y = x_start, y_start
     for i in range(25):
         curr_x += direction * 3 + math.sin(i * 0.5) * 4
         curr_y += 12
-        t.goto(curr_x, curr_y)
-        t.dot(8, '#e1bee7')
+        cx, cy = to_canvas(curr_x, curr_y)
+        ctx.fillStyle = '#e1bee7'
+        ctx.beginPath()
+        ctx.arc(cx, cy, 4, 0, math.pi * 2)
+        ctx.fill()
 
-# Flor amarilla dentada
-def draw_yellow_flower(x, y, radius):
-    t.penup()
-    t.goto(x, y - radius)
-    t.setheading(0)
-    t.color('#fff59d', '#ffee58')
-    t.begin_fill()
-    
-    petals = 20
-    for i in range(petals):
-        t.circle(radius, 360 / petals)
-        t.left(90)
-        t.forward(8)
-        t.backward(8)
-        t.right(90)
-    t.end_fill()
-    
-    # Centro
-    t.penup()
-    t.goto(x, y - radius * 0.4)
-    t.color('#fff176')
-    t.begin_fill()
-    t.circle(radius * 0.4)
-    t.end_fill()
-
-# Flor blanca pequeña
-def draw_white_flower(x, y):
-    t.penup()
-    t.goto(x, y)
-    t.color('#ffffff')
-    for _ in range(8):
-        t.pendown()
-        t.forward(15)
-        t.dot(6, '#ffffff')
-        t.backward(15)
-        t.right(45)
-    t.dot(10, '#ffee58')
-
-# Flor rosada/violeta
-def draw_pink_flower(x, y):
-    t.penup()
-    t.goto(x, y)
-    t.color('#f48fb1')
-    for _ in range(3):
-        t.pendown()
-        t.forward(18)
-        t.dot(10, '#f48fb1')
-        t.backward(18)
-        t.right(30)
-
-# Dibujar Ramo
-draw_stems()
 draw_lavender(0, -200, -2.5)
 draw_lavender(0, -200, 2.5)
 
-# Flores secundarias
+# Flor rosada
+def draw_pink_flower(x, y):
+    cx, cy = to_canvas(x, y)
+    ctx.strokeStyle = '#f48fb1'
+    ctx.lineWidth = 2
+    for angle in [0, 120, 240]:
+        rad = math.radians(angle)
+        px = cx + math.cos(rad) * 18
+        py = cy + math.sin(rad) * 18
+        ctx.beginPath()
+        ctx.moveTo(cx, cy)
+        ctx.lineTo(px, py)
+        ctx.stroke()
+        ctx.fillStyle = '#f48fb1'
+        ctx.beginPath()
+        ctx.arc(px, py, 5, 0, math.pi * 2)
+        ctx.fill()
+
+# Flor blanca
+def draw_white_flower(x, y):
+    cx, cy = to_canvas(x, y)
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = 1.5
+    for i in range(8):
+        rad = math.radians(i * 45)
+        px = cx + math.cos(rad) * 15
+        py = cy + math.sin(rad) * 15
+        ctx.beginPath()
+        ctx.moveTo(cx, cy)
+        ctx.lineTo(px, py)
+        ctx.stroke()
+        ctx.fillStyle = '#ffffff'
+        ctx.beginPath()
+        ctx.arc(px, py, 3, 0, math.pi * 2)
+        ctx.fill()
+    ctx.fillStyle = '#ffee58'
+    ctx.beginPath()
+    ctx.arc(cx, cy, 5, 0, math.pi * 2)
+    ctx.fill()
+
+# Flor amarilla dentada
+def draw_yellow_flower(x, y, radius):
+    cx, cy = to_canvas(x, y)
+    petals = 20
+    ctx.fillStyle = '#ffee58'
+    ctx.beginPath()
+    ctx.arc(cx, cy, radius, 0, math.pi * 2)
+    ctx.fill()
+    
+    ctx.strokeStyle = '#fff59d'
+    ctx.lineWidth = 2
+    for i in range(petals):
+        rad = math.radians(i * (360 / petals))
+        px1 = cx + math.cos(rad) * radius
+        py1 = cy + math.sin(rad) * radius
+        px2 = cx + math.cos(rad) * (radius + 6)
+        py2 = cy + math.sin(rad) * (radius + 6)
+        ctx.beginPath()
+        ctx.moveTo(px1, py1)
+        ctx.lineTo(px2, py2)
+        ctx.stroke()
+
+    ctx.fillStyle = '#fff176'
+    ctx.beginPath()
+    ctx.arc(cx, cy, radius * 0.4, 0, math.pi * 2)
+    ctx.fill()
+
+# Dibujar flores
 draw_pink_flower(-160, 160)
 draw_pink_flower(160, 160)
 draw_pink_flower(-100, 40)
@@ -177,15 +193,16 @@ draw_white_flower(0, 180)
 draw_white_flower(-220, 100)
 draw_white_flower(220, 100)
 
-# Flores amarillas principales
 draw_yellow_flower(-100, 70, 45)
 draw_yellow_flower(100, 70, 45)
 draw_yellow_flower(0, 30, 50)
 
-# Moño base
-t.penup()
-t.goto(0, -200)
-t.dot(30, '#a5d6a7')
+# Mono
+cx, cy = to_canvas(0, -200)
+ctx.fillStyle = '#a5d6a7'
+ctx.beginPath()
+ctx.arc(cx, cy, 15, 0, math.pi * 2)
+ctx.fill()
 `;
 
             await pyodide.runPythonAsync(pythonCode);
