@@ -1,10 +1,12 @@
-
-       <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ramo Especial para Iara y Nicki</title>
+    <!-- Carga de Brython y la librería Turtle para la web -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.11.0/brython.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.11.0/brython_stdlib.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -20,165 +22,168 @@
             overflow: hidden;
         }
 
-        #canvas-container {
+        #turtle-div {
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        canvas {
             border-radius: 8px;
+            overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
     </style>
 </head>
-<body>
+<body onload="brython()">
 
-    <div id="canvas-container">
-        <canvas id="flowerCanvas" width="800" height="700"></canvas>
-    </div>
+    <div id="turtle-div"></div>
 
-    <script>
-        const canvas = document.getElementById('flowerCanvas');
-        const ctx = canvas.getContext('2d');
+    <!-- Script en Python puro -->
+    <script type="text/python">
+import turtle
+import math
 
-        function toCanvas(x, y) {
-            return [400 + x, 350 - y];
-        }
+# Configurar pantalla de Turtle
+screen = turtle.Screen()
+screen.setup(width=800, height=700)
+screen.bgcolor("#1a1c29")
+screen.title("Ramo Especial para Iara y Nicki")
+screen.set_svg("turtle-div")
 
-        // Fondo
-        ctx.fillStyle = '#1a1c29';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+# Crear la tortuguita
+t = turtle.Turtle()
+t.speed(3)  # Velocidad de animacion
 
-        // Título
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Georgia';
-        ctx.textAlign = 'center';
-        ctx.fillText('Ramo Especial para Iara y Nicki', 400, 50);
+# Titulo
+t.penup()
+t.goto(0, 280)
+t.color("white")
+t.write("Ramo Especial para Iara y Nicki", align="center", font=("Georgia", 20, "bold"))
 
-        // Función para pausar la ejecución y dar el efecto de dibujo lento
-        const delay = ms => new Promise(res => setTimeout(res, ms));
+# Tallos
+targets = [
+    (-220, 100), (-160, 160), (-100, 40), (-50, 180),
+    (0, 60), (50, 180), (100, 40), (160, 160), (220, 100)
+]
 
-        async function drawLineAnimated(x1, y1, x2, y2, color, width, steps = 20) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-            const [p1x, p1y] = toCanvas(x1, y1);
-            const [p2x, p2y] = toCanvas(x2, y2);
+t.color("#388e3c")
+t.pensize(3)
 
-            let lastX = p1x;
-            let lastY = p1y;
+# Lazos base
+t.penup()
+t.goto(0, -200)
+t.pendown()
+t.goto(-40, -280)
 
-            for (let i = 1; i <= steps; i++) {
-                const currentX = p1x + (p2x - p1x) * (i / steps);
-                const currentY = p1y + (p2y - p1y) * (i / steps);
+t.penup()
+t.goto(0, -200)
+t.pendown()
+t.goto(40, -280)
 
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
+for tx, ty in targets:
+    t.penup()
+    t.goto(0, -200)
+    t.pendown()
+    t.goto(tx, ty)
 
-                lastX = currentX;
-                lastY = currentY;
+# Espigas tipo lavanda
+def draw_lavender(x_start, y_start, direction):
+    t.penup()
+    t.goto(x_start, y_start)
+    curr_x, curr_y = x_start, y_start
+    t.color("#e1bee7")
+    for i in range(25):
+        curr_x += direction * 3 + math.sin(i * 0.5) * 4
+        curr_y += 12
+        t.penup()
+        t.goto(curr_x, curr_y)
+        t.pendown()
+        t.dot(8)
 
-                await delay(20); // Pausa entre cada tramito de la línea
-            }
-        }
+draw_lavender(0, -200, -2.5)
+draw_lavender(0, -200, 2.5)
 
-        async function drawCircleAnimated(x, y, radius, color) {
-            const [cx, cy] = toCanvas(x, y);
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            ctx.fill();
-            await delay(30);
-        }
+# Flor rosada
+def draw_pink_flower(x, y):
+    t.penup()
+    t.goto(x, y)
+    t.color("#f48fb1")
+    t.pensize(2)
+    for angle in [0, 120, 240]:
+        rad = math.radians(angle)
+        px = x + math.cos(rad) * 18
+        py = y + math.sin(rad) * 18
+        t.penup()
+        t.goto(x, y)
+        t.pendown()
+        t.goto(px, py)
+        t.dot(10)
 
-        async function startPenDrawing() {
-            // 1. Tallos
-            await drawLineAnimated(0, -200, -40, -280, '#388e3c', 3);
-            await drawLineAnimated(0, -200, 40, -280, '#388e3c', 3);
+# Flor blanca
+def draw_white_flower(x, y):
+    t.penup()
+    t.goto(x, y)
+    t.color("#ffffff")
+    t.pensize(1.5)
+    for i in range(8):
+        rad = math.radians(i * 45)
+        px = x + math.cos(rad) * 15
+        py = y + math.sin(rad) * 15
+        t.penup()
+        t.goto(x, y)
+        t.pendown()
+        t.goto(px, py)
+        t.dot(6)
+    t.penup()
+    t.goto(x, y)
+    t.color("#ffee58")
+    t.dot(10)
 
-            const targets = [
-                [-220, 100], [-160, 160], [-100, 40], [-50, 180],
-                [0, 60], [50, 180], [100, 40], [160, 160], [220, 100]
-            ];
+# Flor amarilla dentada
+def draw_yellow_flower(x, y, radius):
+    t.penup()
+    t.goto(x, y)
+    t.color("#ffee58")
+    t.dot(radius * 2)
+    
+    petals = 20
+    t.color("#fff59d")
+    t.pensize(2)
+    for i in range(petals):
+        rad = math.radians(i * (360 / petals))
+        px1 = x + math.cos(rad) * radius
+        py1 = y + math.sin(rad) * radius
+        px2 = x + math.cos(rad) * (radius + 6)
+        py2 = y + math.sin(rad) * (radius + 6)
+        t.penup()
+        t.goto(px1, py1)
+        t.pendown()
+        t.goto(px2, py2)
 
-            for (let t of targets) {
-                await drawLineAnimated(0, -200, t[0], t[1], '#388e3c', 3);
-            }
+    t.penup()
+    t.goto(x, y)
+    t.color("#fff176")
+    t.dot(radius * 0.8)
 
-            // 2. Lavandas
-            async function drawLavender(xStart, yStart, direction) {
-                let currX = xStart;
-                let currY = yStart;
-                for (let i = 0; i < 25; i++) {
-                    currX += direction * 3 + Math.sin(i * 0.5) * 4;
-                    currY += 12;
-                    await drawCircleAnimated(currX, currY, 4, '#e1bee7');
-                }
-            }
+# Dibujar flores
+draw_pink_flower(-160, 160)
+draw_pink_flower(160, 160)
+draw_pink_flower(-100, 40)
+draw_pink_flower(100, 40)
 
-            await drawLavender(0, -200, -2.5);
-            await drawLavender(0, -200, 2.5);
+draw_white_flower(0, 180)
+draw_white_flower(-220, 100)
+draw_white_flower(220, 100)
 
-            // 3. Flores Rosadas
-            async function drawPinkFlower(x, y) {
-                for (let angle of [0, 120, 240]) {
-                    const rad = angle * Math.PI / 180;
-                    const px = x + Math.cos(rad) * 18;
-                    const py = y + Math.sin(rad) * 18;
-                    await drawLineAnimated(x, y, px, py, '#f48fb1', 2, 10);
-                    await drawCircleAnimated(px, py, 5, '#f48fb1');
-                }
-            }
+draw_yellow_flower(-100, 70, 45)
+draw_yellow_flower(100, 70, 45)
+draw_yellow_flower(0, 30, 50)
 
-            await drawPinkFlower(-160, 160);
-            await drawPinkFlower(160, 160);
-            await drawPinkFlower(-100, 40);
-            await drawPinkFlower(100, 40);
+# Mono
+t.penup()
+t.goto(0, -200)
+t.color("#a5d6a7")
+t.dot(30)
 
-            // 4. Flores Blancas
-            async function drawWhiteFlower(x, y) {
-                for (let i = 0; i < 8; i++) {
-                    const rad = (i * 45) * Math.PI / 180;
-                    const px = x + Math.cos(rad) * 15;
-                    const py = y + Math.sin(rad) * 15;
-                    await drawLineAnimated(x, y, px, py, '#ffffff', 1.5, 8);
-                    await drawCircleAnimated(px, py, 3, '#ffffff');
-                }
-                await drawCircleAnimated(x, y, 5, '#ffee58');
-            }
-
-            await drawWhiteFlower(0, 180);
-            await drawWhiteFlower(-220, 100);
-            await drawWhiteFlower(220, 100);
-
-            // 5. Flores Amarillas
-            async function drawYellowFlower(x, y, radius) {
-                const petals = 20;
-                await drawCircleAnimated(x, y, radius, '#ffee58');
-
-                for (let i = 0; i < petals; i++) {
-                    const rad = (i * (360 / petals)) * Math.PI / 180;
-                    const px1 = x + Math.cos(rad) * radius;
-                    const py1 = y + Math.sin(rad) * radius;
-                    const px2 = x + Math.cos(rad) * (radius + 6);
-                    const py2 = y + Math.sin(rad) * (radius + 6);
-                    await drawLineAnimated(px1, py1, px2, py2, '#fff59d', 2, 5);
-                }
-
-                await drawCircleAnimated(x, y, radius * 0.4, '#fff176');
-            }
-
-            await drawYellowFlower(-100, 70, 45);
-            await drawYellowFlower(100, 70, 45);
-            await drawYellowFlower(0, 30, 50);
-
-            // Moño
-            await drawCircleAnimated(0, -200, 15, '#a5d6a7');
-        }
-
-        startPenDrawing();
+t.hideturtle()
     </script>
 </body>
 </html>
