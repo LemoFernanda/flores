@@ -3,228 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramo Especial para Iara y Nicki</title>
+    <title>Ramo Especial para Lara y Nicki</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: #1a1c29;
+            color: white;
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
             overflow: hidden;
-            font-family: 'Georgia', serif;
         }
 
-        h1 {
-            color: #ffffff;
-            font-size: 2.2rem;
-            margin-top: 20px;
-            margin-bottom: 10px;
+        #loading {
+            position: absolute;
+            font-size: 1.2rem;
+            color: #ffe082;
             text-align: center;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         canvas {
-            background-color: transparent;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-    <h1>Ramo Especial para Iara y Nicki</h1>
-    <canvas id="flowerCanvas" width="700" height="650"></canvas>
+    <div id="loading">✨ Cargando las flores... unos segundos ✨</div>
+    <div id="canvas-container"></div>
 
     <script>
-        const canvas = document.getElementById('flowerCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let angleOffset = 0;
-
-        // Dibuja flor tipo estrella/girasol amarilla
-        function drawYellowFlower(x, y, scale = 1, rotation = 0) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(rotation);
-            ctx.scale(scale, scale);
-
-            const points = 16;
-            const outerRadius = 45;
-            const innerRadius = 25;
-
-            ctx.beginPath();
-            for (let i = 0; i < points * 2; i++) {
-                const r = (i % 2 === 0) ? outerRadius : innerRadius;
-                const a = (i * Math.PI) / points;
-                const px = Math.cos(a) * r;
-                const py = Math.sin(a) * r;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.fillStyle = '#ffea55';
-            ctx.fill();
-
-            // Centro
-            ctx.beginPath();
-            ctx.arc(0, 0, 18, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff59d';
-            ctx.fill();
-
-            ctx.restore();
-        }
-
-        // Dibuja flor pequeña blanca/amarilla
-        function drawWhiteFlower(x, y, scale = 1) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.scale(scale, scale);
-
-            const petals = 12;
-            for (let i = 0; i < petals; i++) {
-                const a = (i * 2 * Math.PI) / petals;
-                ctx.beginPath();
-                ctx.ellipse(Math.cos(a) * 15, Math.sin(a) * 15, 8, 4, a, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffffff';
-                ctx.fill();
-            }
-
-            ctx.beginPath();
-            ctx.arc(0, 0, 8, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffeb3b';
-            ctx.fill();
-
-            ctx.restore();
-        }
-
-        // Dibuja flor violeta/rosa
-        function drawPinkFlower(x, y, scale = 1, angle = 0) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle);
-            ctx.scale(scale, scale);
-
-            ctx.fillStyle = '#e1bee7';
-            for (let i = -1; i <= 1; i++) {
-                ctx.beginPath();
-                ctx.ellipse(i * 10, -10, 8, 16, i * 0.3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            ctx.restore();
-        }
-
-        // Dibuja espigas onduladas tipo lavanda
-        function drawLavender(startX, startY, endX, endY, wavePhase) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
+        async function main() {
+            let pyodide = await loadPyodide();
             
-            const steps = 30;
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps;
-                const x = startX + (endX - startX) * t;
-                const y = startY + (endY - startY) * t;
-                const wave = Math.sin(t * 12 + wavePhase) * 8 * t;
-                
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x + wave, y);
-            }
-            ctx.strokeStyle = '#ce93d8';
-            ctx.lineWidth = 6;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-            ctx.restore();
+            // Ocultamos el mensaje de carga cuando Pyodide está listo
+            document.getElementById("loading").style.display = "none";
+
+            // Código de Python exacto con animación de Turtle
+            const pythonCode = `
+import turtle
+import math
+
+screen = turtle.Screen()
+screen.setup(width=800, height=700)
+screen.bgcolor('#1a1c29')
+screen.title("Ramo Especial para Iara y Nicki")
+
+t = turtle.Turtle()
+t.speed(0)
+t.hideturtle()
+
+# Titulo
+t.penup()
+t.goto(0, 260)
+t.color('white')
+t.write("Ramo Especial para Iara y Nicki", align="center", font=("Georgia", 22, "bold"))
+
+# Tallo central base
+def draw_stems():
+    t.pensize(3)
+    t.color('#388e3c')
+    
+    # Lazos e interseccion inferior
+    t.penup()
+    t.goto(0, -200)
+    t.pendown()
+    t.goto(-40, -280)
+    t.penup()
+    t.goto(0, -200)
+    t.pendown()
+    t.goto(40, -280)
+
+    # Tallos que se abren en abanico
+    targets = [
+        (-220, 100), (-160, 160), (-100, 40), (-50, 180),
+        (0, 60), (50, 180), (100, 40), (160, 160), (220, 100)
+    ]
+    
+    for tx, ty in targets:
+        t.penup()
+        t.goto(0, -200)
+        t.pendown()
+        t.goto(tx, ty)
+
+# Espigas tipo lavanda
+def draw_lavender(x_start, y_start, direction):
+    t.pensize(4)
+    t.color('#ce93d8')
+    t.penup()
+    t.goto(x_start, y_start)
+    t.pendown()
+    
+    curr_x, curr_y = x_start, y_start
+    for i in range(25):
+        curr_x += direction * 3 + math.sin(i * 0.5) * 4
+        curr_y += 12
+        t.goto(curr_x, curr_y)
+        t.dot(8, '#e1bee7')
+
+# Flor amarilla dentada
+def draw_yellow_flower(x, y, radius):
+    t.penup()
+    t.goto(x, y - radius)
+    t.setheading(0)
+    t.color('#fff59d', '#ffee58')
+    t.begin_fill()
+    
+    petals = 20
+    for i in range(petals):
+        t.circle(radius, 360 / petals)
+        t.left(90)
+        t.forward(8)
+        t.backward(8)
+        t.right(90)
+    t.end_fill()
+    
+    # Centro
+    t.penup()
+    t.goto(x, y - radius * 0.4)
+    t.color('#fff176')
+    t.begin_fill()
+    t.circle(radius * 0.4)
+    t.end_fill()
+
+# Flor blanca pequeña
+def draw_white_flower(x, y):
+    t.penup()
+    t.goto(x, y)
+    t.color('#ffffff')
+    for _ in range(8):
+        t.pendown()
+        t.forward(15)
+        t.dot(6, '#ffffff')
+        t.backward(15)
+        t.right(45)
+    t.dot(10, '#ffee58')
+
+# Flor rosada/violeta
+def draw_pink_flower(x, y):
+    t.penup()
+    t.goto(x, y)
+    t.color('#f48fb1')
+    for _ in range(3):
+        t.pendown()
+        t.forward(18)
+        t.dot(10, '#f48fb1')
+        t.backward(18)
+        t.right(30)
+
+# Dibujar Ramo
+draw_stems()
+draw_lavender(0, -200, -2.5)
+draw_lavender(0, -200, 2.5)
+
+# Flores secundarias
+draw_pink_flower(-160, 160)
+draw_pink_flower(160, 160)
+draw_pink_flower(-100, 40)
+draw_pink_flower(100, 40)
+
+draw_white_flower(0, 180)
+draw_white_flower(-220, 100)
+draw_white_flower(220, 100)
+
+# Flores amarillas principales
+draw_yellow_flower(-100, 70, 45)
+draw_yellow_flower(100, 70, 45)
+draw_yellow_flower(0, 30, 50)
+
+# Moño base
+t.penup()
+t.goto(0, -200)
+t.dot(30, '#a5d6a7')
+`;
+
+            await pyodide.runPythonAsync(pythonCode);
         }
-
-        // Render principal animado
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const tieX = 350;
-            const tieY = 490;
-
-            // Tallos inferiores que se cruzan
-            ctx.strokeStyle = '#388e3c';
-            ctx.lineWidth = 3;
-
-            ctx.beginPath();
-            ctx.moveTo(tieX, tieY);
-            ctx.lineTo( tieX - 50, tieY + 80);
-            ctx.moveTo(tieX, tieY);
-            ctx.lineTo( tieX + 50, tieY + 80);
-            ctx.stroke();
-
-            // Lista de destinos de los tallos principales
-            const targets = [
-                { x: 180, y: 150 },
-                { x: 230, y: 120 },
-                { x: 280, y: 220 },
-                { x: 350, y: 130 },
-                { x: 350, y: 250 },
-                { x: 420, y: 220 },
-                { x: 470, y: 120 },
-                { x: 520, y: 150 },
-                { x: 200, y: 320 },
-                { x: 500, y: 320 }
-            ];
-
-            // Dibujar tallos rectos principales
-            targets.forEach(t => {
-                ctx.beginPath();
-                ctx.moveTo(tieX, tieY);
-                ctx.lineTo(t.x, t.y);
-                ctx.strokeStyle = '#2e7d32';
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-            });
-
-            // Espigas laterales de lavanda animadas
-            drawLavender(tieX, tieY, 150, 180, angleOffset);
-            drawLavender(tieX, tieY, 550, 180, -angleOffset);
-
-            // Flores de adorno (blancas y violetas)
-            drawPinkFlower(230, 220, 0.9, -0.4);
-            drawPinkFlower(470, 220, 0.9, 0.4);
-            drawPinkFlower(310, 160, 0.8, -0.2);
-            drawPinkFlower(390, 160, 0.8, 0.2);
-
-            drawWhiteFlower(350, 130, 0.9);
-            drawWhiteFlower(200, 320, 0.85);
-            drawWhiteFlower(500, 320, 0.85);
-
-            // Flores Amarillas Principales (animadas suavemente)
-            const float1 = Math.sin(angleOffset) * 4;
-            const float2 = Math.cos(angleOffset) * 4;
-
-            drawYellowFlower(280, 220 + float1, 1.1, angleOffset * 0.2);
-            drawYellowFlower(420, 220 + float2, 1.1, -angleOffset * 0.2);
-            drawYellowFlower(350, 260 - float1, 1.25, angleOffset * 0.1);
-
-            // Lazo / Moño del ramo
-            ctx.beginPath();
-            ctx.arc(tieX, tieY, 16, 0, Math.PI * 2);
-            ctx.fillStyle = '#c8e6c9';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(tieX - 10, tieY + 10);
-            ctx.lineTo(tieX - 25, tieY + 45);
-            ctx.moveTo(tieX + 10, tieY + 10);
-            ctx.lineTo(tieX + 25, tieY + 45);
-            ctx.strokeStyle = '#c8e6c9';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-
-            angleOffset += 0.03;
-            requestAnimationFrame(animate);
-        }
-
-        animate();
+        main();
     </script>
 </body>
 </html>
