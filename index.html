@@ -40,6 +40,9 @@
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
+        // Objeto para manejar la animación del dibujo inicial
+        let isFinishedDrawing = false;
+
         async function drawLineAnimated(x1, y1, x2, y2, color, width, speed = 15) {
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
@@ -74,8 +77,171 @@
             await delay(15);
         }
 
-        async function startDrawing() {
-            // Fondo y Título
+        // --- SISTEMA DE DIBUJO BASE Y DIBUJO CON VIENTO ---
+        function renderBouquet(windOffset = 0) {
+            ctx.fillStyle = '#1a1c29';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Título
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Georgia';
+            ctx.textAlign = 'center';
+            ctx.fillText('Ramo Especial para Iara y Nicki', 400, 50);
+
+            function drawLineStatic(x1, y1, x2, y2, color, width) {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                const [p1x, p1y] = toCanvas(x1, y1);
+                const [p2x, p2y] = toCanvas(x2, y2);
+                ctx.beginPath();
+                ctx.moveTo(p1x, p1y);
+                ctx.lineTo(p2x, p2y);
+                ctx.stroke();
+            }
+
+            function drawDotStatic(x, y, radius, color) {
+                const [cx, cy] = toCanvas(x, y);
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Aplicar viento según la altura Y del elemento
+            function applyWind(x, y) {
+                const factor = Math.max(0, (y + 200) / 400); // Más viento más arriba
+                return [x + windOffset * factor, y];
+            }
+
+            // Tallos
+            const baseLeft = applyWind(-40, -280);
+            const baseRight = applyWind(40, -280);
+            const center = applyWind(0, -200);
+
+            drawLineStatic(center[0], center[1], baseLeft[0], baseLeft[1], '#388e3c', 3);
+            drawLineStatic(center[0], center[1], baseRight[0], baseRight[1], '#388e3c', 3);
+
+            const targets = [
+                [-220, 100], [-160, 160], [-100, 40], [-50, 180],
+                [0, 60], [50, 180], [100, 40], [160, 160], [220, 100]
+            ];
+
+            for (let t of targets) {
+                const dest = applyWind(t[0], t[1]);
+                drawLineStatic(center[0], center[1], dest[0], dest[1], '#388e3c', 3);
+            }
+
+            // Lavandas
+            for (let direction of [-2.5, 2.5]) {
+                let currX = 0, currY = -200;
+                for (let i = 0; i < 25; i++) {
+                    currX += direction * 3 + Math.sin(i * 0.5) * 4;
+                    currY += 12;
+                    const pos = applyWind(currX, currY);
+                    drawDotStatic(pos[0], pos[1], 4, '#e1bee7');
+                }
+            }
+
+            // Rosadas
+            function drawPinkFlowerStatic(x, y) {
+                const pos = applyWind(x, y);
+                for (let angle of [0, 120, 240]) {
+                    const rad = angle * Math.PI / 180;
+                    const px = pos[0] + Math.cos(rad) * 18;
+                    const py = pos[1] + Math.sin(rad) * 18;
+                    drawLineStatic(pos[0], pos[1], px, py, '#f48fb1', 2);
+                    drawDotStatic(px, py, 5, '#f48fb1');
+                }
+            }
+            drawPinkFlowerStatic(-160, 160);
+            drawPinkFlowerStatic(160, 160);
+            drawPinkFlowerStatic(-100, 40);
+            drawPinkFlowerStatic(100, 40);
+
+            // Blancas
+            function drawWhiteFlowerStatic(x, y) {
+                const pos = applyWind(x, y);
+                for (let i = 0; i < 8; i++) {
+                    const rad = (i * 45) * Math.PI / 180;
+                    const px = pos[0] + Math.cos(rad) * 15;
+                    const py = pos[1] + Math.sin(rad) * 15;
+                    drawLineStatic(pos[0], pos[1], px, py, '#ffffff', 1.5);
+                    drawDotStatic(px, py, 3, '#ffffff');
+                }
+                drawDotStatic(pos[0], pos[1], 5, '#ffee58');
+            }
+            drawWhiteFlowerStatic(0, 180);
+            drawWhiteFlowerStatic(-220, 100);
+            drawWhiteFlowerStatic(220, 100);
+
+            // Amarillas
+            function drawYellowFlowerStatic(x, y, radius) {
+                const pos = applyWind(x, y);
+                const petals = 20;
+                drawDotStatic(pos[0], pos[1], radius, '#ffee58');
+
+                for (let i = 0; i < petals; i++) {
+                    const rad = (i * (360 / petals)) * Math.PI / 180;
+                    const px1 = pos[0] + Math.cos(rad) * radius;
+                    const py1 = pos[1] + Math.sin(rad) * radius;
+                    const px2 = pos[0] + Math.cos(rad) * (radius + 6);
+                    const py2 = pos[1] + Math.sin(rad) * (radius + 6);
+                    drawLineStatic(px1, py1, px2, py2, '#fff59d', 2);
+                }
+                drawDotStatic(pos[0], pos[1], radius * 0.4, '#fff176');
+            }
+            drawYellowFlowerStatic(-100, 70, 45);
+            drawYellowFlowerStatic(100, 70, 45);
+            drawYellowFlowerStatic(0, 30, 50);
+
+            // Moño
+            const bow = applyWind(0, -200);
+            drawDotStatic(bow[0], bow[1], 15, '#a5d6a7');
+        }
+
+        // --- MARIPOSAS ---
+        const butterflies = [
+            { x: -150, y: 100, color: '#e040fb', angle: 0, speed: 0.03, size: 12 },
+            { x: 150, y: 50, color: '#00e5ff', angle: 2, speed: 0.025, size: 10 },
+            { x: 0, y: 220, color: '#ffeb3b', angle: 4, speed: 0.035, size: 8 }
+        ];
+
+        function drawButterfly(b, time) {
+            // Movimiento orbital en espiral suave alrededor del ramo
+            b.angle += b.speed;
+            const currentX = b.x + Math.sin(b.angle) * 35;
+            const currentY = b.y + Math.cos(b.angle * 0.7) * 20;
+
+            const [cx, cy] = toCanvas(currentX, currentY);
+
+            // Aleteo de alas
+            const wingFlap = Math.abs(Math.sin(time * 0.01));
+
+            ctx.fillStyle = b.color;
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            // Ala izquierda
+            ctx.beginPath();
+            ctx.ellipse(-b.size * 0.6 * wingFlap, -b.size * 0.3, b.size * wingFlap, b.size * 0.6, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ala derecha
+            ctx.beginPath();
+            ctx.ellipse(b.size * 0.6 * wingFlap, -b.size * 0.3, b.size * wingFlap, b.size * 0.6, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cuerpo
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // --- SECUENCIA INICIAL DE TRAZO ---
+        async function startDrawingSequence() {
             ctx.fillStyle = '#1a1c29';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -107,7 +273,7 @@
                 }
             }
 
-            // Flores Rosadas
+            // Rosadas
             async function drawPinkFlower(x, y) {
                 for (let angle of [0, 120, 240]) {
                     const rad = angle * Math.PI / 180;
@@ -117,13 +283,12 @@
                     await drawDot(px, py, 5, '#f48fb1');
                 }
             }
-
             await drawPinkFlower(-160, 160);
             await drawPinkFlower(160, 160);
             await drawPinkFlower(-100, 40);
             await drawPinkFlower(100, 40);
 
-            // Flores Blancas
+            // Blancas
             async function drawWhiteFlower(x, y) {
                 for (let i = 0; i < 8; i++) {
                     const rad = (i * 45) * Math.PI / 180;
@@ -134,12 +299,11 @@
                 }
                 await drawDot(x, y, 5, '#ffee58');
             }
-
             await drawWhiteFlower(0, 180);
             await drawWhiteFlower(-220, 100);
             await drawWhiteFlower(220, 100);
 
-            // Flores Amarillas
+            // Amarillas
             async function drawYellowFlower(x, y, radius) {
                 const petals = 20;
                 await drawDot(x, y, radius, '#ffee58');
@@ -152,19 +316,38 @@
                     const py2 = y + Math.sin(rad) * (radius + 6);
                     await drawLineAnimated(px1, py1, px2, py2, '#fff59d', 2, 4);
                 }
-
                 await drawDot(x, y, radius * 0.4, '#fff176');
             }
-
             await drawYellowFlower(-100, 70, 45);
             await drawYellowFlower(100, 70, 45);
             await drawYellowFlower(0, 30, 50);
 
             // Moño
             await drawDot(0, -200, 15, '#a5d6a7');
+
+            // Habilitar animación continua cuando termine de trazarse
+            isFinishedDrawing = true;
+            requestAnimationFrame(animateLoop);
         }
 
-        window.onload = startDrawing;
+        // --- BUCLE CONTINUO (VIENTO Y MARIPOSAS) ---
+        function animateLoop(time) {
+            if (!isFinishedDrawing) return;
+
+            // Balanceo constante como si soplara viento suave
+            const windOffset = Math.sin(time * 0.002) * 12;
+
+            renderBouquet(windOffset);
+
+            // Dibujar las mariposas
+            for (let b of butterflies) {
+                drawButterfly(b, time);
+            }
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        window.onload = startDrawingSequence;
     </script>
 </body>
 </html>
