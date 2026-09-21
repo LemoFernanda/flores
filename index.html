@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flores para Lara y Nicki</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #canvas-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <script type="py" config='{"packages":["turtle"]}'>
+import turtle
+import math
+
+# Configuración de la pantalla
+screen = turtle.Screen()
+screen.bgcolor("#121212")
+screen.setup(width=900, height=750)
+
+pen = turtle.Turtle()
+pen.speed(0)
+
+# Tallo verde hacia el moño
+def dibujar_tallo(x, y):
+    pen.penup()
+    pen.goto(x, y)
+    pen.pendown()
+    pen.color("#2e5a27")
+    pen.pensize(3)
+    pen.goto(0, -200)
+
+# Dibujar moño central
+def dibujar_mono():
+    pen.penup()
+    pen.goto(0, -200)
+    pen.pendown()
+    pen.color("#d4af37")
+    pen.begin_fill()
+    pen.circle(18)
+    pen.end_fill()
+    
+    pen.color("#f3e5ab")
+    pen.pensize(3)
+    pen.penup()
+    pen.goto(0, -200)
+    pen.pendown()
+    pen.goto(-35, -270)
+    pen.penup()
+    pen.goto(0, -200)
+    pen.pendown()
+    pen.goto(35, -270)
+
+# 1. GIRASOL
+def dibujar_girasol(x, y, escala=0.85):
+    dibujar_tallo(x, y)
+    pen.color("#ffcc00")
+    petalos = 16
+    for i in range(petalos):
+        pen.penup()
+        pen.goto(x, y)
+        pen.setheading(i * (360 / petalos))
+        pen.pendown()
+        pen.begin_fill()
+        pen.circle(45 * escala, 60)
+        pen.left(120)
+        pen.circle(45 * escala, 60)
+        pen.end_fill()
+
+    phi = 137.5 * (math.pi / 180.0)
+    pen.color("#3a1e05")
+    puntos = int(50 * escala)
+    for i in range(puntos):
+        r = (2.0 * escala) * math.sqrt(i)
+        theta = i * phi
+        px = x + r * math.cos(theta)
+        py = y + r * math.sin(theta)
+        pen.penup()
+        pen.goto(px, py)
+        pen.pendown()
+        pen.dot(int(3.5 * escala))
+
+# 2. MARGARITA
+def dibujar_margarita(x, y, escala=0.75, color_petalos="#ffffff"):
+    dibujar_tallo(x, y)
+    pen.color(color_petalos)
+    petalos = 12
+    for i in range(petalos):
+        pen.penup()
+        pen.goto(x, y)
+        pen.setheading(i * (360 / petalos))
+        pen.pendown()
+        pen.begin_fill()
+        pen.circle(30 * escala, 50)
+        pen.left(130)
+        pen.circle(30 * escala, 50)
+        pen.end_fill()
+
+    pen.penup()
+    pen.goto(x, y - (10 * escala))
+    pen.pendown()
+    pen.color("#ffae00")
+    pen.begin_fill()
+    pen.circle(10 * escala)
+    pen.end_fill()
+
+# 3. TULIPÁN
+def dibujar_tulipan(x, y, color, escala=0.8):
+    dibujar_tallo(x, y)
+    pen.color(color)
+    
+    pen.penup()
+    pen.goto(x, y)
+    pen.setheading(60)
+    pen.pendown()
+    pen.begin_fill()
+    pen.circle(35 * escala, 90)
+    pen.left(120)
+    pen.circle(35 * escala, 90)
+    pen.end_fill()
+    
+    pen.penup()
+    pen.goto(x, y)
+    pen.setheading(120)
+    pen.pendown()
+    pen.begin_fill()
+    pen.circle(-35 * escala, 90)
+    pen.right(120)
+    pen.circle(-35 * escala, 90)
+    pen.end_fill()
+
+    pen.penup()
+    pen.goto(x - (10 * escala), y + (5 * escala))
+    pen.setheading(75)
+    pen.pendown()
+    pen.begin_fill()
+    pen.circle(30 * escala, 70)
+    pen.left(110)
+    pen.circle(30 * escala, 70)
+    pen.end_fill()
+
+# 4. LAVANDA
+def dibujar_lavanda(x, y, escala=0.8):
+    dibujar_tallo(x, y)
+    tonos = ["#8a2be2", "#9932cc", "#ba55d3", "#d8bfd8"]
+    for i in range(12):
+        pen.penup()
+        offset_y = y + (i * 8 * escala)
+        offset_x = x + (math.sin(i) * 5 * escala)
+        pen.goto(offset_x, offset_y)
+        pen.pendown()
+        pen.color(tonos[i % len(tonos)])
+        pen.dot(int(10 * escala))
+
+# DIBUJO DEL RAMO COMPLETO
+dibujar_mono()
+
+lavandas = [(-160, 80), (-130, 140), (130, 140), (160, 80)]
+for lx, ly in lavandas:
+    dibujar_lavanda(lx, ly)
+
+tulipanes = [
+    (-100, 40, "#ff69b4"),
+    (100, 40, "#8a2be2"),
+    (-50, 150, "#8a2be2"),
+    (50, 150, "#ff1493")
+]
+for tx, ty, col in tulipanes:
+    dibujar_tulipan(tx, ty, col)
+
+margaritas = [(-120, -10), (120, -10), (0, 200)]
+for mx, my in margaritas:
+    dibujar_margarita(mx, my)
+
+girasoles = [(0, 50), (-60, 90), (60, 90)]
+for gx, gy in girasoles:
+    dibujar_girasol(gx, gy)
+
+# Dedicatoria
+pen.penup()
+pen.goto(0, 280)
+pen.color("#fff8dc")
+pen.write("Ramo Especial para Iara y Nicki", align="center", font=("Georgia", 20, "bold"))
+
+pen.hideturtle()
+    </script>
+</body>
+</html>
